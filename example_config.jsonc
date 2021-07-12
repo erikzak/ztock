@@ -1,0 +1,85 @@
+{
+	// Market data settings
+	"market_data": {
+		"vendor": "Finnhub",
+		// Market data vendor specific trading interval delay
+		// Useful if vendor candlesticks always have a certain delay for updating candlestick intervals
+		"interval_delay": 0,
+		// Vendor specific settings, see documentation
+		"api_key": "your.key.here"
+	},
+
+	// List of individual trader configs
+	"traders": [{
+		// Broker settings
+		"broker": {
+			"vendor": "IBKR",
+			// Vendor specific settings, see documentation
+			"account_id": "MYACCOUNTID",
+			"gateway_url": "localhost",
+			"gateway_port": 5000
+		},
+
+		// Exchanges and symbols, used to define what symbols to analyze
+		// Use _RANDOM_# to select # number of random stocks as well
+		"exchanges": {
+			"NASDAQ": ["AAPL", "TSLA", "_RANDOM_10"],
+			"OL": ["_RANDOM_10"]
+		},
+
+		// Optional buy/sell flags, used for only looking for buy or sell candidates
+		// Both default to true
+		"buy": true,
+		"sell": true,
+		
+		// Candlestick resolution (kline interval) in minutes
+		// Legal values: 1, 5, 15, 30, 60, 'D', 'W', 'M'
+		"candlestick_resolution": 5,
+		// Sleep duration (seconds) between reruns in seconds
+		"sleep_duration": 300,
+
+		// Fraction of available funds to use for buy orders
+		"buy_fraction": 0.05,
+		// Max position value, in multiple of highest value of calculated buy_fraction or min_buy_amount
+		"max_position_value": 3,
+		// Minimum/maximum order amounts, in exchange currency
+		"min_buy_amount": 100,
+		"max_buy_amount": 500,
+		// Minimum broker cash balance, new orders won't exceed this
+		"min_broker_cash_balance": 100,
+		// Profitability checks
+		"profit_check": {
+			// Flag for only closing positions with profit
+			"enabled": true,
+			// Minimum profit in fraction of market value before sell is triggered
+			"min_profit_fraction": 0.05
+		},
+
+		// The maximum order lifetime,(seconds), before it is cancelled
+		"order_lifetime": 600
+	}],
+
+	// Log settings
+	"logging": {
+		// Python logging module level constant to use, defaults to INFO
+		"level": "INFO",
+		// If defined, a log is created at this path, rotating files at midnight
+		"file": "path/to/log_file.log",
+		// SMTP mail server for error logs and order notifications
+		// Either "errors_to" or "orders_to" (or both) should be defined, if
+		// not nothing happens
+		"mail": {
+			"errors_to": ["recipient@mail"],
+			"orders_to": ["recipient@mail"],
+			"smtp_host": "smtp.gmail.com",
+			"smtp_port": 587,
+			"address": "my@mail",
+			"username": "myUsername",
+			"password": "myPassword",
+			// Interval between notification mails, in hours
+			// Remove or set to 0 for mails every run
+			"error_interval": 1,
+			"order_interval": 0
+		}
+	}	
+}
