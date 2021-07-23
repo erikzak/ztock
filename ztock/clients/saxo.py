@@ -128,8 +128,6 @@ class SaxoClient(Client):
 
         try:
             self._token = self._authenticate_oauth2()
-            self.logger.debug("{}' - Storing new token: {}".format(self.name, self._token))
-            self._db.store_token(self._token)
         except AuthenticationExpiredError:
             if (error_on_reauth):
                 raise
@@ -339,6 +337,9 @@ class SaxoClient(Client):
         self._token = response.json()
         self._token["timestamp"] = datetime.datetime.now()
         self._set_access_token_header()
+        # Store token in sqlite3 db
+        self.logger.debug("{}' - Storing new token: {}".format(self.name, self._token))
+        self._db.store_token(self._token)
         return self._token
 
     def _refresh_token(self) -> Dict[str, Union[str, int, datetime.datetime]]:
@@ -360,6 +361,9 @@ class SaxoClient(Client):
         self._token = response.json()
         self._token["timestamp"] = datetime.datetime.now()
         self._set_access_token_header()
+        # Store token in sqlite3 db
+        self.logger.debug("{}' - Storing new token: {}".format(self.name, self._token))
+        self._db.store_token(self._token)
         return self._token
 
     def _validate_tokens(self) -> bool:
