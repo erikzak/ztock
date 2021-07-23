@@ -12,6 +12,7 @@ from .utils import parse_decimal
 _HIDE = [
     "password",
     "api_key",
+    "app_secret",
 ]
 
 

@@ -18,6 +18,7 @@ from .exchange import Exchange
 from .markets import Market
 from .patterns.candlestick import CandlestickPattern
 from .symbol import Symbol
+from .utils import pprint_number
 
 
 class Trader:
@@ -332,13 +333,13 @@ class Trader:
                 min_profit_fraction = getattr(self.config.profit_check, "min_profit_fraction", 0)
                 min_profit = position.market_value * min_profit_fraction
                 min_profit += self.broker.minimum_order_fee * 2
-                if (position.pnl and position.pnl < min_profit):
+                if (position.pnl is not None and position.pnl < min_profit):
                     self.logger.info(
                         "{0}: Skipping analysis due to profitability check: "
                         "{1:.2f} {2} < {3:.2f} {2} target ({4:.2f} {2} * {5} + "
                         "{6} {2} * 2)".format(
                             position.symbol.name, position.pnl, position.currency,
-                            min_profit, position.market_value, min_profit_fraction,
+                            min_profit, position.market_value, pprint_number(min_profit_fraction),
                             self.broker.minimum_order_fee
                         )
                     )

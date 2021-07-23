@@ -62,3 +62,13 @@ def generate_random_string(string_length: int = 12) -> str:
         for _ in range(string_length)
     )
     return random_string
+
+
+def pprint_number(number):
+    """Returns pretty decimal representation of number with trailing 0's stripped."""
+    string = str(number)
+    if ("." in string):
+        integer, decimal = string.split(".")
+        decimal = decimal.rstrip("0")
+        string = f"{integer}.{decimal}"
+    return string
