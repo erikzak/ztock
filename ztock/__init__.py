@@ -62,6 +62,7 @@ def run(config_file: str) -> None:
                 flush_log()
             except Exception:
                 logger.exception("{} - Unable to perform trading run".format(trader.id))
+                trader.calculate_next_run()
         time.sleep(1)
     return
 
