@@ -85,7 +85,7 @@ class BufferingSMTPHandler(logging.handlers.BufferingHandler):
         # Checks if errors have been logged, then if error mail should be sent
         # based on mail interval
         if (self._last_mail and self.hours_between_mails):
-            hours_since_last_mail = (datetime.datetime.now() - self._last_mail).seconds // 3600
+            hours_since_last_mail = (datetime.datetime.now() - self._last_mail).total_seconds() // 3600
             if (hours_since_last_mail < self.hours_between_mails):
                 # Less than defined hours between mails, waiting with log flush
                 logger.debug("Less than {} hour(s) ({}) since last error mail".format(
