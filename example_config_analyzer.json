@@ -1,0 +1,41 @@
+{
+	// Market data settings
+	"market_data": {
+		"vendor": "Finnhub",
+		// Market data vendor specific trading interval delay
+		// Useful if vendor candlesticks always have a certain delay for updating candlestick intervals
+		"interval_delay": 0,
+		// Vendor specific settings, see documentation
+		"api_key": "your.key.here"
+	},
+
+	// List of exchanges and markets to analyze for patterns, using 
+	// market data vendor exchange and MIC codes
+	"exchanges": {
+		"US": ["XNAS", "XNYS"],
+		"OSE": "XOSL"
+	},
+	// Candlestick resolution (kline interval) in minutes, 1440 will analyze daily trend
+	"candlestick_resolution": 1440,
+	// Path to output JSON file containing analysis results
+	"output_path": "//your/path/to/output/result",
+	"logging": {
+		// Python logging module level constant to use, defaults to INFO
+		"level": "INFO",
+		// If defined, a log is created at this path, rotating files at midnight
+		"file": "path/to/log_file.log",
+		// SMTP mail server for error logs
+		"mail": {
+			"errors_to": ["recipient@mail"],
+			"smtp_host": "smtp.gmail.com",
+			"smtp_port": 587,
+			"address": "my@mail",
+			"username": "myUsername",
+			"password": "myPassword",
+			// Interval between notification mails, in hours
+			// Remove or set to 0 for mails every run
+			"error_interval": 1,
+			"order_interval": 0
+		}
+	}
+}

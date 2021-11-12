@@ -6,7 +6,9 @@ import datetime
 import logging
 import pickle
 import time
+from typing import List
 
+from .analyzer import Analyzer
 from .config import Config
 from .constants import LOG_NAME
 from .logger import init_log, flush_log, set_log_level
@@ -25,10 +27,7 @@ def run(config_file: str) -> None:
     config = Config(config_file)
 
     # Init logger
-    if (hasattr(config, "logging")):
-        logger = init_log(config.logging)
-    else:
-        logger = logging.getLogger(LOG_NAME)
+    logger = _init_log(config)
     logger.info("Config: {}".format(config))
 
     # Set up traders
@@ -67,7 +66,38 @@ def run(config_file: str) -> None:
     return
 
 
-def _init_traders(config: Config):
+def analyze(config_file: str) -> None:
+    """
+    Continuous trading mode. Keeps running trade and sleeping for set
+    duration between runs.
+
+    :param config_file: path to config file
+    :type config_file: str
+    """
+    config = Config(config_file)
+
+    # Init logger
+    logger = _init_log(config)
+    logger.info("Config: {}".format(config))
+
+    # Set up market data vendor object
+    market = init_market(config.market_data)
+    # Init analyzer and run with configured settings
+    analyzer = Analyzer(config, market)
+    analyzer.run()
+    return
+
+
+def _init_log(config: Config) -> logging.Logger:
+    """Inits log based on config."""
+    if (hasattr(config, "logging")):
+        logger = init_log(config.logging)
+    else:
+        logger = logging.getLogger(LOG_NAME)
+    return logger
+
+
+def _init_traders(config: Config) -> List[Trader]:
     """Inits trader objects based on configs."""
     # Set up market data vendor object
     market = init_market(config.market_data)
@@ -81,4 +111,5 @@ def _init_traders(config: Config):
 __all__ = [
     "LOG_NAME",
     "run",
+    "analyze",
 ]
