@@ -237,7 +237,7 @@ class IBKR(Broker):
                 continue
             placed_at = datetime.datetime.fromtimestamp(int(order.id.split("_")[-1]))
             order_age = datetime.datetime.now() - placed_at
-            if (order_age.seconds > order_lifetime):
+            if (order_age.total_seconds() > order_lifetime):
                 self.logger.info("IBKR - Cancelling order {}".format(order))
                 status = self.cancel_order(order)
                 cancelled_orders.append(status)

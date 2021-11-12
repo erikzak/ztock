@@ -188,9 +188,9 @@ class SaxoBroker(SaxoClient):
                 continue
             placed_at = self._parse_utc_datestring(order.OrderTime)
             order_age = datetime.datetime.utcnow() - placed_at
-            if (order_age.seconds > order_lifetime):
+            if (order_age.total_seconds() > order_lifetime):
                 self.logger.info("{} - Cancelling stale ({} s) order {}".format(
-                    self.name, order_age.seconds, order
+                    self.name, order_age.total_seconds(), order
                 ))
                 cancelled_orders.append(order)
         if (cancelled_orders):

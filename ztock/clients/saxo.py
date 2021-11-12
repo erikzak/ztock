@@ -378,7 +378,7 @@ class SaxoClient(Client):
 
         # Get current time and calculate token age
         now = datetime.datetime.now()
-        token_age = (now - token_timestamp).seconds
+        token_age = (now - token_timestamp).total_seconds()
 
         # Check if access token is still valid
         if (token_age < self._token["expires_in"]):
@@ -405,7 +405,7 @@ class SaxoClient(Client):
         token_type = self._token.get("token_type", "Bearer")
         header = "Authorization"
         value = f"{token_type} {access_token}"
-        self.logger.debug("{} - Setting {} to {}".format(self.name, header, value))
+        self.logger.debug("{} - Setting '{}' header to '{}'".format(self.name, header, value))
         self.session.headers.update({
             header: value,
         })
