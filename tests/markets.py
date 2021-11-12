@@ -27,13 +27,13 @@ def main():
     # symbols = market.list_symbols("NASDAQ")
     # print(symbols)
 
-    symbol = market.lookup_symbol("SEKDKK")
+    symbol = market.lookup_symbol("HCAT")
     # print(symbol)
 
     # quote = market.get_symbol_quote(symbol)
     # print(quote)
 
-    candlesticks = market.get_candlesticks(symbol, resolution=15)
+    candlesticks = market.get_candlesticks(symbol, resolution=60)
     print(candlesticks)
 
     # avg_price = market.get_average_price(symbol, "BUY", 10)
