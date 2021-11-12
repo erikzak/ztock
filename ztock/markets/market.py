@@ -21,7 +21,8 @@ class Market(Client):
         raise NotImplementedError("Market.refresh() not implemented")
 
     def list_symbols(
-            self, exchange_codes: Union[List[str], str], symbol_type: Optional[str] = None
+            self, exchange_codes: Union[List[str], str],
+            symbol_type: Optional[str] = None, mic_codes: Optional[Union[List[str], str]] = None
     ) -> Dict[str, Symbol]:
         """
         Lists symbols for given exchange codes. Returns list of Symbol
@@ -31,7 +32,9 @@ class Market(Client):
         :type exchange_codes: list of str or str
         :param symbol_type: OpenFIGI symbol type, e.g. "Common Stock"
         :type symbol_type: str
-        :returns: symbols for given exchanges
+        :param mic_codes: optional list of MIC codes
+        :type mic_codes: list of str or str
+        :returns: dict of symbol-Symbol key-value pairs for given exchange(s)
         :rtype: dict of (str, ztock.broker.Symbol)
         """
         raise NotImplementedError("Market.list_symbols() not implemented")

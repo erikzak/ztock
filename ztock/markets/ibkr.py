@@ -61,7 +61,8 @@ class IBKR(Market):
         return
 
     def list_symbols(
-            self, exchange_codes: Union[List[str], str], symbol_type: Optional[str] = None
+            self, exchange_codes: Union[List[str], str],
+            symbol_type: Optional[str] = None, mic_codes: Optional[Union[List[str], str]] = None
     ) -> Dict[str, Symbol]:
         """
         NOT IMPLEMENTED, IBKR DOES NOT HAVE THIS FUNCTIONALITY.
@@ -73,6 +74,8 @@ class IBKR(Market):
         :type exchange_codes: list of str or str
         :param symbol_type: OpenFIGI symbol type, e.g. "Common Stock"
         :type symbol_type: str
+        :param mic_codes: optional list of MIC codes
+        :type mic_codes: list of str or str
         :returns: symbols for given exchanges
         :rtype: dict of (str, ztock.broker.Symbol)
         """

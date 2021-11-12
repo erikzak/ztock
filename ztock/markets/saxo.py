@@ -30,7 +30,8 @@ class SaxoMarket(SaxoClient):
     _symbols = {}
 
     def list_symbols(
-            self, exchange_codes: Union[List[str], str], symbol_type: Optional[str] = None,
+            self, exchange_codes: Union[List[str], str],
+            symbol_type: Optional[str] = None, mic_codes: Optional[Union[List[str], str]] = None,
             account_key: Optional[str] = None, include_non_tradeable: Optional[bool] = False
     ) -> Dict[str, Symbol]:
         """
@@ -43,6 +44,8 @@ class SaxoMarket(SaxoClient):
         :type exchange_codes: list of str or str
         :param symbol_type: OpenFIGI symbol type, e.g. "Common Stock"
         :type symbol_type: str
+        :param mic_codes: optional list of MIC codes
+        :type mic_codes: list of str or str
         :param account_key: optional Saxo Bank account key. Limits results to
             what account has access to
         :type account_key: str
