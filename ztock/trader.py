@@ -33,6 +33,8 @@ class Trader:
 
         :param config: trader configuration
         :type config: ztock.config.Config
+        :param market: market data instance
+        :type market: ztock.market.Market
         """
         self.id = uuid.uuid4()
         self.market = market
