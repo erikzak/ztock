@@ -14,6 +14,8 @@ from ..candlestick import Candlestick
 
 class CandlestickPattern(Pattern):
     """Base candlestick pattern class."""
+    timestamp = None
+
     def __init__(
             self,
             name: str,
@@ -64,6 +66,10 @@ class CandlestickPattern(Pattern):
             'close': np.asarray(close, dtype=np.float64),
             'volume': np.asarray(volume, dtype=np.float64)
         }
+
+        # Optionally add timestamp
+        if (candlesticks[-1].timestamp is not None):
+            self.timestamp = candlesticks[-1].timestamp
 
         # Run pattern detection and validate results
         analysis = self.function(inputs)
