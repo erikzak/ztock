@@ -7,6 +7,8 @@ https://finnhub.io
 import datetime
 import logging
 import math
+import time
+import urllib3
 from decimal import Decimal
 from typing import Dict, List, Optional, Union
 
@@ -20,6 +22,10 @@ from ..exceptions import NoDataException
 from ..symbol import Symbol
 from ..utils import parse_decimal
 
+
+IGNORE = [
+    "MKC.V"
+]
 
 EXCHANGES = {
     "AS": "NYSE EURONEXT - EURONEXT AMSTERDAM",
@@ -126,6 +132,9 @@ class FinnhubMarket(Market):
         version = getattr(config, "version", "v1")
         self.api_url = f"{self.root_url}/{version}"
 
+        # Disable SSL warnings
+        urllib3.disable_warnings()
+
         # Logger
         self.logger = logging.getLogger(LOG_NAME)
 
@@ -144,12 +153,30 @@ class FinnhubMarket(Market):
         })
         return
 
+    def request(self, *args, **kwargs) -> requests.Response:
+        """Handles Finnhub request rate limit exceptions."""
+        try:
+            response = super().request(*args, **kwargs)
+        except requests.HTTPError as error:
+            response = error.response
+            # If rate limit error, wait a minute and retry
+            if (response.status_code == 429):
+                self.logger.debug(
+                    "{} - Rate limit reached, sleeping for 1 minute before "
+                    "retry..".format(self.name)
+                )
+                time.sleep(60)
+                return super().request(*args, **kwargs)
+            raise
+        return response
+
     def refresh(self):
         """Does nothing, no refresh necessary."""
         return
 
     def list_symbols(
-            self, exchange_codes: Union[List[str], str], symbol_type: Optional[str] = None
+            self, exchange_codes: Union[List[str], str],
+            symbol_type: Optional[str] = None, mic_codes: Optional[Union[List[str], str]] = None
     ) -> Dict[str, Symbol]:
         """
         Lists symbols for given exchange codes. Returns list of Symbol
@@ -161,41 +188,46 @@ class FinnhubMarket(Market):
         :type exchange_codes: list of str or str
         :param symbol_type: OpenFIGI symbol type, e.g. "Common Stock"
         :type symbol_type: str
-        :returns: dict of symbol-Symbol key-valie pairs for given exchange(s)
+        :param mic_codes: optional list of MIC codes
+        :type mic_codes: list of str or str
+        :returns: dict of symbol-Symbol key-value pairs for given exchange(s)
         :rtype: dict of (str, ztock.broker.Symbol)
         """
         if (isinstance(exchange_codes, str)):
             exchange_codes = [exchange_codes]
+        if (isinstance(mic_codes, str) or mic_codes is None):
+            mic_codes = [mic_codes]
         # Define URL
         url = f"{self.api_url}/stock/symbol"
 
         # Loop through exchanges and get symbols
         symbols = {}
         for exchange_code in exchange_codes:
-            # Generate and send request with payload
-            params = {
-                "exchange": EXCHANGE_REMAP.get(exchange_code, exchange_code),
-            }
-            if (symbol_type):
-                params["securityType"] = symbol_type
-            response = self.session.get(url, params=params)
-            response.raise_for_status()
-            # Unpack result and append Symbols to list
-            exchange_symbols = response.json()
-            for symbol in exchange_symbols:
-                symbol_name = symbol["symbol"]
-                symbols[symbol_name] = Symbol(
-                    symbol_name,
-                    display_symbol=symbol["displaySymbol"],
-                    exchange=exchange_code,
-                    # Part of kwargs:
-                    # currency=symbol["currency"],
-                    # description=symbol["description"],
-                    # figi=symbol["figi"],
-                    # mic=symbol["mic"],
-                    # type=symbol["type"],
-                    **symbol
-                )
+            for mic_code in mic_codes:
+                # Generate and send request with payload
+                params = {
+                    "exchange": EXCHANGE_REMAP.get(exchange_code, exchange_code),
+                }
+                if (symbol_type):
+                    params["securityType"] = symbol_type
+                if (mic_code):
+                    params["mic"] = mic_code
+                response = self.request("GET", url, data=params, session=self.session)
+                # Unpack result and append Symbols to list
+                exchange_symbols = response.json()
+                for symbol in exchange_symbols:
+                    symbol_name = symbol["symbol"]
+                    symbols[symbol_name] = Symbol(
+                        symbol_name,
+                        display_symbol=symbol["displaySymbol"],
+                        exchange=exchange_code,
+                        # Part of kwargs:
+                        # currency=symbol["currency"],
+                        # figi=symbol["figi"],
+                        # mic=symbol["mic"],
+                        # type=symbol["type"],
+                        **symbol
+                    )
         return symbols
 
     def get_symbol_quote(
@@ -221,7 +253,7 @@ class FinnhubMarket(Market):
         params = {
             "symbol": symbol.name,
         }
-        response = self.session.get(url, params=params)
+        response = self.request("GET", url, data=params, session=self.session)
         response.raise_for_status()
         price = parse_decimal(response.json()["c"])
         return price
@@ -248,10 +280,22 @@ class FinnhubMarket(Market):
         """
         candlesticks = []
 
+        # Custom ignore list
+        if (symbol.name in IGNORE):
+            return candlesticks
+
         # Define URL and parameters
         url = f"{self.api_url}/stock/candle"
         resolution = resolution or 5
         intervals = intervals or 50
+
+        # Remap days, weeks and months to resolution strings
+        if (resolution == 1440):
+            resolution = "D"
+        elif (resolution == 10080):
+            resolution = "W"
+        elif (resolution == 43200):
+            resolution = "M"
 
         # Calculate from/to timestamps
         now = datetime.datetime.now()
@@ -271,16 +315,21 @@ class FinnhubMarket(Market):
         from_timestamp = math.floor(from_datetime.timestamp())
         to_timestamp = math.ceil(now.timestamp())
 
+        # Custom fix for *.OL symbol requests
+        symbol_name = symbol.name
+        if ("." in symbol_name and symbol_name.split(".")[-1] == "OL"):
+            split = symbol_name.split(".")
+            symbol_name = ".".join(split[:-1]) + ".ol"
+
         # Generate payload and send request
         params = {
-            "symbol": symbol.name,
+            "symbol": symbol_name,
             "resolution": resolution,
             "from": from_timestamp - 1,
             "to": to_timestamp + 1,
         }
         self.logger.debug("Finnhub - Fetching candlesticks using request params {}".format(params))
-        response = self.session.get(url, params=params)
-        response.raise_for_status()
+        response = self.request("GET", url, data=params, session=self.session)
 
         # Unpack response, validate status and generate candlesticks
         data = response.json()
@@ -301,7 +350,8 @@ class FinnhubMarket(Market):
             low = data["l"][i]
             close = data["c"][i]
             volume = data["v"][i]
-            candlesticks.append(Candlestick(open_, high, low, close, volume))
+            timestamp = datetime.datetime.fromtimestamp(data["t"][i])
+            candlesticks.append(Candlestick(open_, high, low, close, volume, timestamp=timestamp))
         latest_timestamp = datetime.datetime.fromtimestamp(data["t"][-1])
         self.logger.debug("{} - Latest candlestick timestamp: {}".format(
             self.name, latest_timestamp
