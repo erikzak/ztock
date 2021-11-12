@@ -7,8 +7,6 @@ and market data vendors.
 
 class Symbol:
     """Base Symbol class."""
-    exchange = None
-
     def __init__(self, name: str, **kwargs):
         """
         Inits Symbol object with defined name and optional keyword arguments.
@@ -19,16 +17,24 @@ class Symbol:
         * description: free-text company/ticker description
         * display_symbol:
         * exchange: symbol exchange code, e.g. US, OL
-        * type: symbol type, e.g. Common Stock
+        * mic: ISO MIC code
         * figi
-        * mic
+        * type: symbol type, e.g. Common Stock
 
         :param name: symbol name
         :type name: str
         """
+        self.type = None
+        self.currency = None
+        self.description = None
+        self.display_symbol = None
+        self.exchange = None
+        self.mic = None
+        self.figi = None
+
         self.name = name
         for key, value in kwargs.items():
-            if (not hasattr(self, key)):
+            if (getattr(self, key, None) is None):
                 setattr(self, key, value)
         return
 
