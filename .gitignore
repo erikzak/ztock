@@ -1,8 +1,10 @@
 # Custom
 *.log.*
 /config.json
+/config_analyzer.json
 /tests/test_config.json
 /todo.txt
+/ztock_analysis.json
 dbs/
 
 # SQLite3
