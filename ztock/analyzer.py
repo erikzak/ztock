@@ -79,7 +79,7 @@ class Analyzer:
         self.logger.debug("{} {} - Symbols: {}".format(self.market.name, self.id, symbols))
         # Analyze symbols and return results
         results = {}
-        for symbol_name, symbol in symbols.items():
+        for symbol in symbols.values():
             self.logger.debug("{} {} - Analyzing {} symbol {}".format(
                 self.market.name, self.id, exchange, symbol.name
             ))
@@ -97,14 +97,16 @@ class Analyzer:
             if (patterns[-1].timestamp is not None):
                 timestamp = patterns[-1].timestamp.strftime("%Y.%m.%d %H:%M:%S")
 
-            results[symbol_name] = {
+            results[exchange] = {
                 "patterns": {
                     pattern.name: pattern.indication
                     for pattern in patterns
                     if pattern.indication != 0
                 },
                 "score": score,
-                "timestamp": timestamp
+                "timestamp": timestamp,
+                "name": f" ({symbol.description})" if (symbol.description) else "",
+                "market": symbol.mic,
             }
         return results
 
